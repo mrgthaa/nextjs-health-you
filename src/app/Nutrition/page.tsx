@@ -7,11 +7,11 @@ import {
   MenuItem,
   IconButton,
   Paper,
-  Grid,
   Table, TableBody, TableCell, TableHead, TableRow,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
+import Grid from '@mui/material/Grid'          // ⬅️  IMPORT GRID TERPISAH
 import { styled, keyframes } from '@mui/system'
 import MenuIcon  from '@mui/icons-material/Menu'
 import HomeIcon  from '@mui/icons-material/Home'
@@ -58,7 +58,7 @@ const PageCard = styled(Paper)(({ theme })=>({
     padding:16,
     maxWidth:'100%',
     borderRadius:20,
-    marginTop:72,                // ⇦ ruang untuk ikon di mobile
+    marginTop:72,                // ruang untuk ikon di mobile
   },
 }))
 
