@@ -7,10 +7,10 @@ import {
   MenuItem,
   IconButton,
   Paper,
+  Grid,             // ✅  Grid klasik MUI di‑import via destructuring
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import Grid from '@mui/material/Grid'          // ⬅️  Import Grid TERPISAH!
 import { styled, keyframes } from '@mui/system'
 import MenuIcon  from '@mui/icons-material/Menu'
 import HomeIcon  from '@mui/icons-material/Home'
@@ -53,10 +53,7 @@ const PageCard = styled(Paper)(({ theme }) => ({
 const glow = { boxShadow:'0 0 8px 2px rgba(255,215,0,.6)' }
 
 /* ───── strongly‑typed menu ───── */
-type Hari =
-  | 'Senin' | 'Selasa' | 'Rabu' | 'Kamis'
-  | 'Jumat' | 'Sabtu'  | 'Minggu'
-
+type Hari = 'Senin'|'Selasa'|'Rabu'|'Kamis'|'Jumat'|'Sabtu'|'Minggu'
 interface MenuHarian { pagi:string; siang:string; malam:string }
 
 const dailyMenus: Record<Hari, MenuHarian> = {
@@ -71,10 +68,10 @@ const dailyMenus: Record<Hari, MenuHarian> = {
 
 /* ───── page component ───── */
 export default function NutritionPage() {
-  const router               = useRouter()
+  const router   = useRouter()
   const { darkMode, toggleDarkMode } = useDarkMode()
-  const theme                = useTheme()
-  const upSm                 = useMediaQuery(theme.breakpoints.up('sm'))
+  const theme    = useTheme()
+  useMediaQuery(theme.breakpoints.up('sm')) // hanya agar breakpoint di‑evaluasi, value tdk dipakai langsung
 
   const [anchorEl,  setAnchorEl]  = useState<null | HTMLElement>(null)
   const [todayMenu, setTodayMenu] = useState<(MenuHarian & { hari: Hari }) | null>(null)
@@ -83,7 +80,7 @@ export default function NutritionPage() {
   /* pilih menu sesuai hari */
   useEffect(() => {
     const hariList: Hari[] = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu']
-    const hari = hariList[new Date().getDay()] as keyof typeof dailyMenus
+    const hari = hariList[new Date().getDay()]
     setTodayMenu({ hari, ...dailyMenus[hari] })
   }, [])
 
