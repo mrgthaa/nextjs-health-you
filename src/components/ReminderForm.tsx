@@ -3,7 +3,6 @@
 import {
   Button,
   TextField,
-  Grid,
   Box,
   Typography,
   MenuItem,
@@ -89,121 +88,97 @@ const ReminderForm = ({ onAdd }: Props) => {
         Tambah Pengingat
       </Typography>
 
-      <Box component="form" onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
-          {/* Deskripsi */}
-          <Grid item xs={12}>
-            <TextField
-              label="Deskripsi pengingat"
-              variant="outlined"
-              fullWidth
-              value={formData.text}
-              onChange={(e) => handleChange('text', e.target.value)}
-              InputLabelProps={{ style: { color: '#fff' } }}
-              InputProps={{ style: { color: '#fff' } }}
-            />
-          </Grid>
+      <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2}>
+        <TextField
+          label="Deskripsi pengingat"
+          variant="outlined"
+          fullWidth
+          value={formData.text}
+          onChange={(e) => handleChange('text', e.target.value)}
+          InputLabelProps={{ style: { color: '#fff' } }}
+          InputProps={{ style: { color: '#fff' } }}
+        />
 
-          {/* Jam Pengingat */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Jam Pengingat"
-              type="time"
-              fullWidth
-              InputLabelProps={{ shrink: true, style: { color: '#fff' } }}
-              value={formData.time}
-              onChange={(e) => handleChange('time', e.target.value)}
-              sx={{
-                '& input': {
-                  color: '#fff',
-                  // Edge / Firefox dark icon
-                  filter: 'invert(1)',
-                },
-                // Chrome / Safari icon (WebKit)
-                '& input::-webkit-calendar-picker-indicator': {
-                  filter: 'invert(1)',
-                  backgroundColor: 'transparent',
-                  cursor: 'pointer',
-                },
-              }}
-            />
-          </Grid>
+        <TextField
+          label="Jam Pengingat"
+          type="time"
+          fullWidth
+          InputLabelProps={{ shrink: true, style: { color: '#fff' } }}
+          value={formData.time}
+          onChange={(e) => handleChange('time', e.target.value)}
+          sx={{
+            '& input': { color: '#fff', filter: 'invert(1)' },
+            '& input::-webkit-calendar-picker-indicator': {
+              filter: 'invert(1)',
+              backgroundColor: 'transparent',
+              cursor: 'pointer',
+            },
+          }}
+        />
 
-          {/* Jenis Pengingat */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel id="category-label" sx={{ color: '#fff' }}>
-                Jenis Pengingat
-              </InputLabel>
-              <Select
-                labelId="category-label"
-                value={formData.category}
-                onChange={(e) => handleChange('category', e.target.value)}
-                sx={{ color: '#fff' }}
-              >
-                <MenuItem value="makan">Makan</MenuItem>
-                <MenuItem value="minum">Minum</MenuItem>
-                <MenuItem value="tidur">Tidur</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+        <FormControl fullWidth>
+          <InputLabel id="category-label" sx={{ color: '#fff' }}>
+            Jenis Pengingat
+          </InputLabel>
+          <Select
+            labelId="category-label"
+            value={formData.category}
+            onChange={(e) => handleChange('category', e.target.value)}
+            sx={{ color: '#fff' }}
+          >
+            <MenuItem value="makan">Makan</MenuItem>
+            <MenuItem value="minum">Minum</MenuItem>
+            <MenuItem value="tidur">Tidur</MenuItem>
+          </Select>
+        </FormControl>
 
-          {/* Metode Kontak */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel id="contact-type-label" sx={{ color: '#fff' }}>
-                Metode Kontak
-              </InputLabel>
-              <Select
-                labelId="contact-type-label"
-                value={formData.contactType}
-                onChange={(e) => handleChange('contactType', e.target.value as 'email' | 'whatsapp')}
-                sx={{ color: '#fff' }}
-              >
-                <MenuItem value="email">Email</MenuItem>
-                <MenuItem value="whatsapp">WhatsApp</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+        <FormControl fullWidth>
+          <InputLabel id="contact-type-label" sx={{ color: '#fff' }}>
+            Metode Kontak
+          </InputLabel>
+          <Select
+            labelId="contact-type-label"
+            value={formData.contactType}
+            onChange={(e) => handleChange('contactType', e.target.value as 'email' | 'whatsapp')}
+            sx={{ color: '#fff' }}
+          >
+            <MenuItem value="email">Email</MenuItem>
+            <MenuItem value="whatsapp">WhatsApp</MenuItem>
+          </Select>
+        </FormControl>
 
-          {/* Kontak */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={formData.contactType === 'email' ? 'Alamat Email' : 'Nomor WhatsApp'}
-              variant="outlined"
-              fullWidth
-              value={formData.contact}
-              onChange={(e) => handleChange('contact', e.target.value)}
-              InputLabelProps={{ style: { color: '#fff' } }}
-              InputProps={{ style: { color: '#fff' } }}
-            />
-          </Grid>
+        <TextField
+          label={formData.contactType === 'email' ? 'Alamat Email' : 'Nomor WhatsApp'}
+          variant="outlined"
+          fullWidth
+          value={formData.contact}
+          onChange={(e) => handleChange('contact', e.target.value)}
+          InputLabelProps={{ style: { color: '#fff' } }}
+          InputProps={{ style: { color: '#fff' } }}
+        />
 
-          {/* Error */}
-          {error && (
-            <Grid item xs={12}>
-              <Typography color="error">{error}</Typography>
-            </Grid>
-          )}
+        {error && (
+          <Typography color="error" fontSize={14}>
+            {error}
+          </Typography>
+        )}
 
-          {/* Submit */}
-          <Grid item xs={12} display="flex" justifyContent="flex-end">
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              sx={{
-                px: 4,
-                fontWeight: 'bold',
-                backgroundColor: '#ffd700',
-                color: '#000',
-                '&:hover': { backgroundColor: '#e6c200' },
-              }}
-            >
-              Simpan
-            </Button>
-          </Grid>
-        </Grid>
+        <Box display="flex" justifyContent="flex-end">
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            sx={{
+              px: 4,
+              fontWeight: 'bold',
+              backgroundColor: '#ffd700',
+              color: '#000',
+              '&:hover': { backgroundColor: '#e6c200' },
+            }}
+          >
+            Simpan
+          </Button>
+        </Box>
       </Box>
     </FormCard>
   );

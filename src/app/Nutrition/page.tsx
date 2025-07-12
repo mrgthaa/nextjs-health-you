@@ -11,7 +11,6 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import Grid from '@mui/material/Grid'          // ⬅️  IMPORT GRID TERPISAH
 import { styled, keyframes } from '@mui/system'
 import MenuIcon  from '@mui/icons-material/Menu'
 import HomeIcon  from '@mui/icons-material/Home'
@@ -58,7 +57,7 @@ const PageCard = styled(Paper)(({ theme })=>({
     padding:16,
     maxWidth:'100%',
     borderRadius:20,
-    marginTop:72,                // ruang untuk ikon di mobile
+    marginTop:72,
   },
 }))
 
@@ -162,17 +161,30 @@ export default function NutritionPage(){
             </Typography>
 
             {/* tiga waktu */}
-            <Grid container spacing={2}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 2,
+                justifyContent: 'center',
+              }}
+            >
               {(['pagi','siang','malam'] as const).map(slot=>(
-                <Grid item xs={12} sm={6} key={slot}>
+                <Box
+                  key={slot}
+                  sx={{
+                    flexBasis: { xs: '100%', sm: '45%' },
+                    flexGrow : 1,
+                  }}
+                >
                   <NutritionCard
                     title={slot[0].toUpperCase()+slot.slice(1)}
                     description={todayMenu[slot]}
                     darkMode={darkMode}
                   />
-                </Grid>
+                </Box>
               ))}
-            </Grid>
+            </Box>
 
             {/* tabel mingguan */}
             <Box mt={4}>

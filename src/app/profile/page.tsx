@@ -15,7 +15,6 @@ import {
   MenuItem,
   Switch,
   FormControlLabel,
-  Grid,
   useMediaQuery,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -30,6 +29,7 @@ import NextLink from 'next/link';
 
 const API_URL = 'https://6861efad96f0cc4e34b7d2dc.mockapi.io/profile';
 
+/* ───────── animasi & styled helpers ───────── */
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0);   }
@@ -66,7 +66,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
   animation: `${fadeIn} .6s ease-out`,
   width: '100%',
-  maxWidth: 600,          // ➜ form lebih lebar
+  maxWidth: 600,
   textAlign: 'center',
 }));
 
@@ -98,7 +98,7 @@ const ProfileCard = styled(Paper)(({ theme }) => ({
   borderRadius: 28,
   padding: theme.spacing(8, 6),
   width: '100%',
-  maxWidth: 680,          // ➜ background kartu diperbesar
+  maxWidth: 680,
   animation: `${fadeIn} .8s ease-out`,
   transition: 'transform .3s, box-shadow .3s',
   '&:hover': {
@@ -110,6 +110,7 @@ const ProfileCard = styled(Paper)(({ theme }) => ({
   },
 }));
 
+/* ───────── component ───────── */
 export default function Profile() {
   const { darkMode, toggleDarkMode } = useDarkMode();
   const router = useRouter();
@@ -120,9 +121,9 @@ export default function Profile() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
   const isMobile = useMediaQuery('(max-width:600px)');
-
   const [form, setForm] = useState({ name: '', age: '', height: '', weight: '', avatar: '' });
 
+  /* auth check */
   useEffect(() => {
     if (localStorage.getItem('isLoggedIn') !== 'true') {
       router.push('/auth/login');
@@ -131,16 +132,14 @@ export default function Profile() {
     }
   }, [router]);
 
+  /* API helpers */
   const fetchProfiles = async () => {
     const res = await fetch(API_URL);
     const data = await res.json();
     setProfiles(data);
     setShowForm(data.length === 0);
   };
-
-  useEffect(() => {
-    if (mounted) fetchProfiles();
-  }, [mounted]);
+  useEffect(() => { if (mounted) fetchProfiles(); }, [mounted]);
 
   const handleSubmit = async () => {
     const method = editingId ? 'PUT' : 'POST';
@@ -151,19 +150,9 @@ export default function Profile() {
     setShowForm(false);
     fetchProfiles();
   };
-
-  const handleDelete = async (id: string) => {
-    await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    fetchProfiles();
-    setShowForm(true);
-  };
-
+  const handleDelete = async (id: string) => { await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); fetchProfiles(); setShowForm(true); };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setForm({ ...form, avatar: URL.createObjectURL(file) });
-  };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; if (f) setForm({ ...form, avatar: URL.createObjectURL(f) }); };
 
   if (!mounted) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}><CircularProgress /></Box>;
 
@@ -180,9 +169,9 @@ export default function Profile() {
           <MenuIcon fontSize="small" />
         </IconButton>
         <Menu anchorEl={anchorEl} open={menuOpen} onClose={() => setAnchorEl(null)} PaperProps={{ sx: { background: darkMode ? 'linear-gradient(135deg,#0f2027,#203a43,#2c5364)' : 'linear-gradient(135deg,#6f95d3,#9fb9ec)', backdropFilter: 'blur(14px)', borderRadius: 2, border: '1px solid rgba(255,255,255,.25)', color: '#FFD700' } }}>
-          {[{ label: 'Notifikasi Kesehatan', href: '/Reminders' }, { label: 'Menu Sehat', href: '/Nutrition' }, { label: 'Media Sosial', href: '/social' }].map(item => (
-            <MenuItem key={item.href} onClick={() => setAnchorEl(null)}>
-              <NextLink href={item.href} style={{ textDecoration: 'none', color: '#FFD700', width: '100%' }}>{item.label}</NextLink>
+          {[{ label: 'Notifikasi Kesehatan', href: '/Reminders' }, { label: 'Menu Sehat', href: '/Nutrition' }, { label: 'Media Sosial', href: '/social' }].map(i => (
+            <MenuItem key={i.href} onClick={() => setAnchorEl(null)}>
+              <NextLink href={i.href} style={{ textDecoration: 'none', color: '#FFD700', width: '100%' }}>{i.label}</NextLink>
             </MenuItem>
           ))}
           <MenuItem disableRipple disableGutters>
@@ -193,7 +182,8 @@ export default function Profile() {
 
       {/* HEADING */}
       <Typography variant="h4" fontWeight={800} color="#fff" mb={3} textAlign="center">Data Diri</Typography>
-      
+
+      {/* FORM */}
       {showForm && (
         <Container maxWidth="sm" sx={{ px: 2, mb: 4 }}>
           <StyledPaper>
@@ -213,24 +203,37 @@ export default function Profile() {
         </Container>
       )}
 
+      {/* LIST PROFIL */}
       {!showForm && (
-        <Grid container spacing={3} justifyContent="center" sx={{ px: isMobile ? 1 : 4 }}>
-          {profiles.map(profile => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={profile.id}>
+        <Box
+          display="flex"
+          flexWrap="wrap"
+          justifyContent="center"
+          gap={3}
+          sx={{ px: isMobile ? 1 : 4 }}
+        >
+          {profiles.map(p => (
+            <Box
+              key={p.id}
+              sx={{
+                flexBasis: { xs: '100%', sm: '48%', md: '31%', lg: '23%' },
+                maxWidth : { xs: '100%', sm: '48%', md: '31%', lg: '23%' },
+              }}
+            >
               <ProfileCard>
-                <Avatar src={profile.avatar || 'https://via.placeholder.com/120'} alt={profile.name} sx={{ width: 140, height: 140, mb: 2, mx: 'auto', border: '4px solid #FFD700' }} />
-                <Typography variant="h5" fontWeight={700}>{profile.name}</Typography>
-                <Typography>Usia: {profile.age} tahun</Typography>
-                <Typography>Tinggi: {profile.height} cm</Typography>
-                <Typography>Berat: {profile.weight} kg</Typography>
+                <Avatar src={p.avatar || 'https://via.placeholder.com/120'} alt={p.name} sx={{ width: 140, height: 140, mb: 2, mx: 'auto', border: '4px solid #FFD700' }} />
+                <Typography variant="h5" fontWeight={700}>{p.name}</Typography>
+                <Typography>Usia: {p.age} tahun</Typography>
+                <Typography>Tinggi: {p.height} cm</Typography>
+                <Typography>Berat: {p.weight} kg</Typography>
                 <Box mt={2}>
-                  <IconButton sx={{ color: '#FFD700' }} onClick={() => { setForm(profile); setEditingId(profile.id); setShowForm(true); }}><EditIcon /></IconButton>
-                  <IconButton sx={{ color: '#FF4444' }} onClick={() => handleDelete(profile.id)}><DeleteIcon /></IconButton>
+                  <IconButton sx={{ color: '#FFD700' }} onClick={() => { setForm(p); setEditingId(p.id); setShowForm(true); }}><EditIcon /></IconButton>
+                  <IconButton sx={{ color: '#FF4444' }} onClick={() => handleDelete(p.id)}><DeleteIcon /></IconButton>
                 </Box>
               </ProfileCard>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       )}
     </StyledBackground>
   );

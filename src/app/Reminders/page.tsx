@@ -16,7 +16,10 @@ import {
   FormControl,
   InputLabel,
   Button,
-  Grid,
+  Paper,
+  Switch,
+  FormControlLabel,
+  CircularProgress,
 } from '@mui/material';
 import { styled, keyframes } from '@mui/system';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -31,60 +34,47 @@ import DarkModeToggle from '@/components/DarkModeToggle';
 
 const MOCKAPI_URL = 'https://685d194e769de2bf085f55ed.mockapi.io/Reminders';
 
+/* ───────── styled helpers ───────── */
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-const Background = styled(Box, {
-  shouldForwardProp: (prop) => prop !== '$darkMode',
-})<{ $darkMode: boolean }>(({ theme, $darkMode }) => ({
+const Background = styled(Box, { shouldForwardProp: p => p !== '$dark' })<{
+  $dark: boolean;
+}>(({ theme, $dark }) => ({
   minHeight: '100vh',
-  background: $darkMode
-    ? 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)'
-    : 'linear-gradient(135deg, #293d5e, #5f84c7)',
+  background: $dark
+    ? 'linear-gradient(135deg,#0f2027,#203a43,#2c5364)'
+    : 'linear-gradient(135deg,#293d5e,#5f84c7)',
   display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: theme.spacing(4),
   flexDirection: 'column',
+  alignItems: 'center',
+  padding: theme.spacing(6, 2, 8),
   position: 'relative',
-  transition: 'background 0.4s ease-in-out',
 }));
 
-const Card = styled(Box, {
-  shouldForwardProp: (prop) => prop !== '$darkMode',
-})<{ $darkMode: boolean }>(({ theme, $darkMode }) => ({
-  backgroundColor: 'rgba(255, 255, 255, 0.12)',
-  color: '#fff',
+const Card = styled(Paper)(({ theme }) => ({
+  backgroundColor: 'rgba(255,255,255,.12)',
   backdropFilter: 'blur(14px)',
-  borderRadius: '24px',
+  borderRadius: 24,
   padding: theme.spacing(4),
-  boxShadow: '0 18px 38px rgba(0,0,0,0.3)',
-  animation: `${fadeIn} 0.8s ease-out`,
   width: '100%',
-  maxWidth: '800px',
-  transition: 'background 0.4s ease-in-out, color 0.4s ease-in-out',
+  maxWidth: 800,
+  color: '#fff',
+  boxShadow: '0 18px 38px rgba(0,0,0,.35)',
+  animation: `${fadeIn} .8s ease-out`,
 }));
 
-const commonInputStyles = (darkMode: boolean) => ({
-  color: darkMode ? '#fff' : undefined,
-  '& .MuiInputLabel-root': {
-    color: darkMode ? '#fff' : undefined,
-  },
-  '& .MuiOutlinedInput-root': {
-    color: darkMode ? '#fff' : undefined,
-    '& fieldset': {
-      borderColor: darkMode ? '#fff' : undefined,
-    },
-    '& .MuiSvgIcon-root': {
-      color: darkMode ? '#fff' : undefined,
-    },
-  },
-});
-
-const ReminderForm = ({ onAdd, darkMode }: { onAdd: (data: any) => void; darkMode: boolean }) => {
-  const [formData, setFormData] = useState({
+/* ───────── form tanpa Grid ───────── */
+function ReminderForm({
+  onAdd,
+  dark,
+}: {
+  onAdd: (d: any) => void;
+  dark: boolean;
+}) {
+  const [form, setForm] = useState({
     text: '',
     category: '',
     time: '',
@@ -92,329 +82,285 @@ const ReminderForm = ({ onAdd, darkMode }: { onAdd: (data: any) => void; darkMod
     contact: '',
   });
 
+  const update = (k: string) => (e: any) =>
+    setForm({ ...form, [k]: e.target.value });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd(formData);
-    setFormData({
-      text: '',
-      category: '',
-      time: '',
-      contactType: 'email',
-      contact: '',
-    });
+    onAdd(form);
+    setForm({ ...form, text: '', category: '', time: '', contact: '' });
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-      <Typography variant="h6" gutterBottom sx={{ mb: 2, color: darkMode ? '#fff' : undefined }}>
-        Tambah Pengingat
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+    >
+      <Typography variant="h6" fontWeight={700}>
+        Tambah Pengingat
       </Typography>
 
-      <Grid container spacing={2}>
-  <Grid item xs={12} sm={6}>
-  <TextField
-    fullWidth
-    label="Jam Pengingat"
-    type="time"
-    value={formData.time}
-    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-    InputLabelProps={{ shrink: true, sx: { color: '#fff' } }}
-    sx={{
-      color: '#fff',                              // teks input
-      '& .MuiOutlinedInput-root': {
-        color: '#fff',                            // cursor & value
-        '& fieldset': { borderColor: '#fff' },    // garis tepi
-      },
-    }}
-    required
-  />
-</Grid>
+      {/* waktu + kategori */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+        <TextField
+          fullWidth
+          label="Jam Pengingat"
+          type="time"
+          value={form.time}
+          onChange={update('time')}
+          InputLabelProps={{ shrink: true, sx: { color: '#fff' } }}
+          sx={{
+            flex: '1 1 180px',
+            '& .MuiOutlinedInput-root': { color: '#fff' },
+            '& fieldset': { borderColor: '#fff' },
+          }}
+          required
+        />
 
-  {/* Jenis Pengingat */}
-<Grid item xs={12}>
-  <FormControl fullWidth sx={{ color: '#fff' }}>
-    <InputLabel shrink sx={{ color: '#fff' }}>
-      Jenis Pengingat
-    </InputLabel>
-    <Select
-      value={formData.category}
-      label="Jenis Pengingat"
-      onChange={(e) =>
-        setFormData({ ...formData, category: e.target.value as string })
-      }
-      sx={{ color: '#fff', '& .MuiSvgIcon-root': { color: '#fff' } }}
-      required
-    >
-      <MenuItem value="makan">Makan</MenuItem>
-      <MenuItem value="minum">Minum</MenuItem>
-      <MenuItem value="tidur">Tidur</MenuItem>
-    </Select>
-  </FormControl>
-</Grid>
+        <FormControl sx={{ flex: '1 1 220px' }}>
+          <InputLabel shrink sx={{ color: '#fff' }}>
+            Jenis Pengingat
+          </InputLabel>
+          <Select
+            value={form.category}
+            onChange={update('category')}
+            sx={{ color: '#fff', '& .MuiSvgIcon-root': { color: '#fff' } }}
+            required
+          >
+            <MenuItem value="makan">Makan</MenuItem>
+            <MenuItem value="minum">Minum</MenuItem>
+            <MenuItem value="tidur">Tidur</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
 
-{/* Deskripsi */}
-<Grid item xs={12}>
-  <TextField
-    fullWidth
-    label="Deskripsi Pengingat"
-    value={formData.text}
-    onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-    InputLabelProps={{ shrink: true, sx: { color: '#fff' } }}
-    sx={{
-      color: '#fff',
-      '& .MuiOutlinedInput-root fieldset': { borderColor: '#fff' },
-    }}
-    required
-  />
-</Grid>
+      <TextField
+        fullWidth
+        label="Deskripsi Pengingat"
+        value={form.text}
+        onChange={update('text')}
+        InputLabelProps={{ shrink: true, sx: { color: '#fff' } }}
+        sx={{ '& fieldset': { borderColor: '#fff' }, color: '#fff' }}
+        required
+      />
 
-{/* Metode Pengingat */}
-<Grid item xs={12} sm={6}>
-  <FormControl fullWidth sx={{ color: '#fff' }}>
-    <InputLabel shrink sx={{ color: '#fff' }}>
-      Metode Pengingat
-    </InputLabel>
-    <Select
-      value={formData.contactType}
-      label="Metode Pengingat"
-      onChange={(e) =>
-        setFormData({ ...formData, contactType: e.target.value as string })
-      }
-      sx={{ color: '#fff', '& .MuiSvgIcon-root': { color: '#fff' } }}
-      required
-    >
-      <MenuItem value="email">Email</MenuItem>
-      <MenuItem value="whatsapp">WhatsApp</MenuItem>
-    </Select>
-  </FormControl>
-</Grid>
+      {/* metode + kontak */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+        <FormControl sx={{ flex: '1 1 180px' }}>
+          <InputLabel shrink sx={{ color: '#fff' }}>
+            Metode
+          </InputLabel>
+          <Select
+            value={form.contactType}
+            onChange={update('contactType')}
+            sx={{ color: '#fff', '& .MuiSvgIcon-root': { color: '#fff' } }}
+            required
+          >
+            <MenuItem value="email">Email</MenuItem>
+            <MenuItem value="whatsapp">WhatsApp</MenuItem>
+          </Select>
+        </FormControl>
 
-{/* Input kontak */}
-<Grid item xs={12} sm={6}>
-  <TextField
-    fullWidth
-    label={
-      formData.contactType === 'email' ? 'Alamat Email' : 'Nomor WhatsApp'
-    }
-    type={formData.contactType === 'email' ? 'email' : 'tel'}
-    value={formData.contact}
-    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-    InputLabelProps={{ shrink: true, sx: { color: '#fff' } }}
-    sx={{
-      color: '#fff',
-      '& .MuiOutlinedInput-root fieldset': { borderColor: '#fff' },
-    }}
-    required
-  />
-</Grid>
+        <TextField
+          fullWidth
+          label={form.contactType === 'email' ? 'Alamat Email' : 'Nomor WhatsApp'}
+          type={form.contactType === 'email' ? 'email' : 'tel'}
+          value={form.contact}
+          onChange={update('contact')}
+          InputLabelProps={{ shrink: true, sx: { color: '#fff' } }}
+          sx={{ flex: '1 1 220px', '& fieldset': { borderColor: '#fff' }, color: '#fff' }}
+          required
+        />
+      </Box>
 
-</Grid>
-
-
-      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button type="submit" variant="contained" color="primary" sx={{ px: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button variant="contained" type="submit" sx={{ px: 4, borderRadius: 28 }}>
           SIMPAN
         </Button>
       </Box>
     </Box>
   );
-};
+}
 
-const Reminders = () => {
+export default function Reminders() {
   const router = useRouter();
   const { darkMode, toggleDarkMode } = useDarkMode();
   const [reminders, setReminders] = useState<any[]>([]);
-  const [isCheckingLogin, setIsCheckingLogin] = useState(true);
+  const [checking, setChecking] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
 
+  /* auth check */
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
-      router.push('/auth/login');
-    } else {
-      setIsCheckingLogin(false);
-    }
+    localStorage.getItem('isLoggedIn') === 'true'
+      ? setChecking(false)
+      : router.push('/auth/login');
   }, [router]);
 
+  /* fetch data */
   useEffect(() => {
-    if (!isCheckingLogin) {
-      fetchReminders();
+    if (!checking) {
+      fetch(MOCKAPI_URL)
+        .then((r) => r.json())
+        .then(setReminders);
     }
-  }, [isCheckingLogin]);
+  }, [checking]);
 
-  const fetchReminders = async () => {
-    try {
-      const res = await fetch(MOCKAPI_URL);
-      const data = await res.json();
-      setReminders(data);
-    } catch (err) {
-      console.error('Gagal mengambil data:', err);
-    }
+  /* CRUD handlers */
+  const addReminder = async (d: any) => {
+    const res = await fetch(MOCKAPI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(d),
+    });
+    const newReminder = await res.json(); // ✅ tunggu di sini
+    setReminders((r) => [newReminder, ...r]);
   };
 
-  const handleAddReminder = async (data: any) => {
-    try {
-      const res = await fetch(MOCKAPI_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const newReminder = await res.json();
-      setReminders((prev) => [newReminder, ...prev]);
-    } catch (err) {
-      console.error('Gagal menyimpan ke MockAPI:', err);
-    }
+  const delReminder = async (idx: number) => {
+    const victim = reminders[idx];
+    if (victim.id) await fetch(`${MOCKAPI_URL}/${victim.id}`, { method: 'DELETE' });
+    setReminders((r) => r.filter((_, i) => i !== idx));
   };
 
-  const handleDelete = async (index: number) => {
-    const reminderToDelete = reminders[index];
-    try {
-      if (reminderToDelete.id) {
-        await fetch(`${MOCKAPI_URL}/${reminderToDelete.id}`, {
-          method: 'DELETE',
-        });
-      }
-      setReminders((prev) => prev.filter((_, i) => i !== index));
-    } catch (error) {
-      console.error('Gagal menghapus:', error);
-    }
-  };
+  /* top‑bar menu */
+  const openMenu = Boolean(anchorEl);
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
-
-  if (isCheckingLogin) return null;
+  if (checking)
+    return (
+      <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center">
+        <CircularProgress />
+      </Box>
+    );
 
   return (
-    <Background $darkMode={darkMode}>
-      <Box sx={{ position: 'fixed', top: 24, right: 24, zIndex: 1200, display: 'flex', gap: 1 }}>
+    <Background $dark={darkMode}>
+      {/* top‑bar  */}
+      <Box sx={{ position: 'fixed', top: 24, right: 24, display: 'flex', gap: 1 }}>
         <Tooltip title="Dashboard">
           <Link href="/dashboard" passHref>
-            <IconButton sx={{ color: '#ffd700', backgroundColor: 'rgba(255, 255, 255, 0.18)', border: '1px solid #ffd700', backdropFilter: 'blur(4px)' }}>
+            <IconButton
+              sx={{ color: '#ffd700', background: 'rgba(255,255,255,.18)', border: '1px solid #ffd700' }}
+            >
               <HomeIcon fontSize="small" />
             </IconButton>
           </Link>
         </Tooltip>
-
         <Tooltip title="Menu">
-          <IconButton onClick={handleMenuClick} sx={{ color: '#ffd700', backgroundColor: 'rgba(255, 255, 255, 0.18)', border: '1px solid #ffd700', backdropFilter: 'blur(4px)' }}>
+          <IconButton
+            onClick={(e) => setAnchorEl(e.currentTarget)}
+            sx={{ color: '#ffd700', background: 'rgba(255,255,255,.18)', border: '1px solid #ffd700' }}
+          >
             <MenuIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-
-        <Menu anchorEl={anchorEl} open={open} onClose={handleClose} PaperProps={{
-          sx: {
-            background: darkMode
-              ? 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)'
-              : 'linear-gradient(135deg, #749BC2, #A9C4EB)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255, 215, 0, 0.3)',
-            borderRadius: 2,
-            minWidth: 180,
-          },
-        }}>
-          {[{ label: 'Data Diri', href: '/profile' }, { label: 'Menu Sehat', href: '/Nutrition' }, { label: 'Media Sosial', href: '/social' }].map((item, idx) => (
-            <MenuItem key={idx} onClick={handleClose}>
-              <Link href={item.href} style={{ textDecoration: 'none', color: '#ffd700', width: '100%' }}>
-                {item.label}
-              </Link>
-            </MenuItem>
-          ))}
-          <MenuItem onClick={() => { toggleDarkMode(); handleClose(); }} sx={{ color: '#ffd700' }}>
-            <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-          </MenuItem>
-        </Menu>
       </Box>
 
-      <Card $darkMode={darkMode}>
-        <Typography
-  variant="h4"
-  align="center"
-  gutterBottom
-  fontWeight={700}
-  sx={{ color: '#fff' }}
->
-  Pengingat Hidup Sehat 💧🍽️🥬
-</Typography>
-
-<Divider sx={{ my: 2, borderColor: '#555' }} />
-
-<ReminderForm onAdd={handleAddReminder} darkMode={darkMode} />
-
-<Box sx={{ mt: 4 }}>
-  <Typography
-    variant="h6"
-    gutterBottom
-    sx={{ color: '#fff', mb: 2 }}
-  >
-    Daftar Pengingat
-  </Typography>
-
-  {reminders.length === 0 ? (
-    <Typography
-      variant="body2"
-      sx={{ color: '#ccc', textAlign: 'center', py: 4 }}
-    >
-      Belum ada pengingat yang ditambahkan.
-    </Typography>
-  ) : (
-    <Box sx={{ borderRadius: 3, border: '1px solid #555', overflow: 'hidden' }}>
-      <List disablePadding>
-        {reminders.map((reminder, index) => (
-          <Box key={reminder.id || index}>
-            <ListItem
-              secondaryAction={
-                <Tooltip title="Hapus pengingat">
-                  <IconButton edge="end" onClick={() => handleDelete(index)}>
-                    <DeleteIcon color="error" />
-                  </IconButton>
-                </Tooltip>
-              }
-              sx={{
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                },
-              }}
-            >
-              <ListItemText
-                primary={
-                  <Typography fontWeight="bold" sx={{ color: '#fff' }}>
-                    {reminder.text} ({reminder.category})
-                  </Typography>
-                }
-                secondary={
-                  <>
-                    <Typography
-                      component="span"
-                      variant="body2"
-                      display="flex"
-                      alignItems="center"
-                      sx={{ mb: 0.25, color: '#fff' }}
-                    >
-                      <AccessTimeIcon
-                        sx={{ fontSize: 16, mr: 0.5, color: '#fff' }}
-                      />
-                      {reminder.time}
-                    </Typography>
-                    <Typography component="span" variant="body2" sx={{ color: '#fff' }}>
-                      Kirim ke {reminder.contactType === 'email' ? 'Email' : 'WhatsApp'}: {reminder.contact}
-                    </Typography>
-                  </>
-                }
-              />
-            </ListItem>
-            {index < reminders.length - 1 && <Divider sx={{ borderColor: '#555' }} />}
-          </Box>
+      {/* pop‑menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={() => setAnchorEl(null)}
+        PaperProps={{
+          sx: {
+            background: darkMode ? '#102127' : '#6f95d3',
+            backdropFilter: 'blur(14px)',
+            border: '1px solid rgba(255,255,255,.25)',
+          },
+        }}
+      >
+        {[
+          { l: 'Data Diri', h: '/profile' },
+          { l: 'Menu Sehat', h: '/Nutrition' },
+          { l: 'Media Sosial', h: '/social' },
+        ].map((i) => (
+          <MenuItem key={i.h} onClick={() => setAnchorEl(null)}>
+            <Link href={i.h} style={{ textDecoration: 'none', color: '#ffd700', width: '100%' }}>
+              {i.l}
+            </Link>
+          </MenuItem>
         ))}
-      </List>
-    </Box>
+        <MenuItem
+          onClick={() => {
+            toggleDarkMode();
+            setAnchorEl(null);
+          }}
+          sx={{ color: '#ffd700' }}
+        >
+          <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        </MenuItem>
+      </Menu>
+
+      {/* main card */}
+      <Card>
+        <Typography variant="h4" fontWeight={700} align="center" sx={{ mb: 1 }}>
+          Pengingat Hidup Sehat 💧🍽️🥬
+        </Typography>
+        <Divider sx={{ my: 2, borderColor: '#555' }} />
+
+        <ReminderForm onAdd={addReminder} dark={darkMode} />
+
+        <Box mt={4}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Daftar Pengingat
+          </Typography>
+
+          {reminders.length === 0 ? (
+            <Typography sx={{ textAlign: 'center', py: 4, color: '#ccc' }}>
+              Belum ada pengingat.
+            </Typography>
+          ) : (
+            <Box sx={{ borderRadius: 3, border: '1px solid #555', overflow: 'hidden' }}>
+              <List disablePadding>
+                {reminders.map((r, i) => (
+                  <Box key={r.id || i}>
+                    <ListItem
+                      secondaryAction={
+                        <Tooltip title="Hapus">
+                          <IconButton onClick={() => delReminder(i)}>
+                            <DeleteIcon color="error" />
+                          </IconButton>
+                        </Tooltip>
+                      }
+                      sx={{
+                        background: 'rgba(255,255,255,.05)',
+                        '&:hover': { background: 'rgba(255,255,255,.1)' },
+                      }}
+                    >
+                      <ListItemText
+                        primary={
+                          <Typography fontWeight={700}>
+                            {r.text} ({r.category})
+                          </Typography>
+                        }
+                        secondary={
+                          <>
+                            <Typography
+                              variant="body2"
+                              display="flex"
+                              alignItems="center"
+                              sx={{ mb: 0.25 }}
+                            >
+                              <AccessTimeIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                              {r.time}
+                            </Typography>
+                            <Typography variant="body2">
+                              Kirim ke {r.contactType}: {r.contact}
+                            </Typography>
+                          </>
+                        }
+                      />
+                    </ListItem>
+                    {i < reminders.length - 1 && (
+                      <Divider sx={{ borderColor: '#555' }} />
+                    )}
+                  </Box>
+                ))}
+              </List>
+            </Box>
           )}
         </Box>
       </Card>
     </Background>
   );
-};
-
-export default Reminders;
+}

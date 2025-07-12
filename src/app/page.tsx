@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import NextLink from 'next/link';
 import Image from 'next/image';
 import {
   Box,
   Typography,
-  Grid,
   Button,
   useTheme,
   useMediaQuery,
@@ -17,7 +16,7 @@ import { useDarkMode } from '@/context/DarkModeContext';
 /* ───────── animations ───────── */
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0);   }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
 /* ───────── styled helpers ───────── */
@@ -161,16 +160,20 @@ export default function Home() {
         </Subtitle>
 
         {/* CTA */}
-        <Grid container justifyContent="center">
-          <Grid item xs={12} sm="auto">
-            <StyledButton component={NextLink} href="/dashboard" variant="contained" fullWidth={isMobile}>
-              Masuk
-            </StyledButton>
-          </Grid>
-        </Grid>
+        <Box display="flex" justifyContent="center" flexWrap="wrap" gap={2}>
+          <NextLink href="/dashboard" passHref legacyBehavior>
+            <a style={{ textDecoration: 'none' }}>
+              <StyledButton variant="contained" fullWidth={isMobile}>
+                Masuk
+              </StyledButton>
+            </a>
+          </NextLink>
+        </Box>
       </ContentWrapper>
 
-      <FooterText darkMode={darkMode}>© 2025 — HealthYou. Tetap sehat, tetap terhidrasi.</FooterText>
+      <FooterText darkMode={darkMode}>
+        © 2025 — HealthYou. Tetap sehat, tetap terhidrasi.
+      </FooterText>
     </BackgroundContainer>
   );
 }
