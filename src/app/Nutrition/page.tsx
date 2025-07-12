@@ -6,62 +6,58 @@ import {
   Menu,
   MenuItem,
   IconButton,
-  Grid,
   Paper,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
+import Grid from '@mui/material/Grid'          // ⬅️  Import Grid TERPISAH!
 import { styled, keyframes } from '@mui/system'
-import MenuIcon from '@mui/icons-material/Menu'
-import HomeIcon from '@mui/icons-material/Home'
-import Link from 'next/link'
+import MenuIcon  from '@mui/icons-material/Menu'
+import HomeIcon  from '@mui/icons-material/Home'
+import Link      from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDarkMode } from '@/context/DarkModeContext'
 import DarkModeToggle from '@/components/DarkModeToggle'
-import NutritionCard from '@/components/NutritionCard'
+import NutritionCard  from '@/components/NutritionCard'
 
-/* ────────── styled helpers ────────── */
+/* ───── styled helpers ───── */
 const fadeIn = keyframes`
   from {opacity:0;transform:translateY(20px)}
   to   {opacity:1;transform:translateY(0)}
 `
 const StyledBackground = styled('div')<{ $dark: boolean }>(({ theme, $dark }) => ({
-  minHeight: '100vh',
-  overflowX: 'hidden',
+  minHeight : '100vh',
+  overflowX : 'hidden',
   background: $dark
     ? 'linear-gradient(135deg,#0f2027,#203a43,#2c5364)'
     : 'linear-gradient(135deg,#293d5e,#5f84c7)',
-  display: 'flex',
-  flexDirection: 'column',
+  display   : 'flex',
+  flexDirection:'column',
   alignItems: 'center',
-  justifyContent: 'center',
-  padding: theme.spacing(2),
-  position: 'relative',
+  justifyContent:'center',
+  padding   : theme.spacing(2),
+  position  : 'relative',
 }))
 const PageCard = styled(Paper)(({ theme }) => ({
-  background: 'rgba(255,255,255,0.12)',
-  backdropFilter: 'blur(14px)',
-  borderRadius: 16,
-  padding: 32,
-  boxShadow: '0 12px 28px rgba(0,0,0,0.25)',
-  animation: `${fadeIn} .8s ease-out`,
-  width: '100%',
-  maxWidth: 600,
-  [theme.breakpoints.down('sm')]: { maxWidth: '95%', padding: 20 },
+  background   : 'rgba(255,255,255,0.12)',
+  backdropFilter:'blur(14px)',
+  borderRadius : 16,
+  padding      : 32,
+  boxShadow    : '0 12px 28px rgba(0,0,0,0.25)',
+  animation    : `${fadeIn} .8s ease-out`,
+  width        : '100%',
+  maxWidth     : 600,
+  [theme.breakpoints.down('sm')]: { maxWidth:'95%', padding:20 },
 }))
-const glow = { boxShadow: '0 0 8px 2px rgba(255,215,0,.6)' }
+const glow = { boxShadow:'0 0 8px 2px rgba(255,215,0,.6)' }
 
-/* ────────── strongly‑typed menu ────────── */
+/* ───── strongly‑typed menu ───── */
 type Hari =
   | 'Senin' | 'Selasa' | 'Rabu' | 'Kamis'
-  | 'Jumat' | 'Sabtu' | 'Minggu'
+  | 'Jumat' | 'Sabtu'  | 'Minggu'
 
-interface MenuHarian {
-  pagi : string
-  siang: string
-  malam: string
-}
+interface MenuHarian { pagi:string; siang:string; malam:string }
 
 const dailyMenus: Record<Hari, MenuHarian> = {
   Senin : { pagi:'Oatmeal + kiwi & chia (≈310 kcal)', siang:'Ayam kukus + sayur rebus (≈420 kcal)', malam:'Sup tomat + tofu goreng (≈350 kcal)' },
@@ -73,12 +69,12 @@ const dailyMenus: Record<Hari, MenuHarian> = {
   Minggu: { pagi:'French toast gandum + madu (≈370 kcal)', siang:'Pepes ikan + sayur asem (≈460 kcal)', malam:'Nasi uduk + tahu bacem (≈500 kcal)' },
 }
 
-/* ────────── page component ────────── */
+/* ───── page component ───── */
 export default function NutritionPage() {
-  const router   = useRouter()
+  const router               = useRouter()
   const { darkMode, toggleDarkMode } = useDarkMode()
-  const theme    = useTheme()
-  const upSm     = useMediaQuery(theme.breakpoints.up('sm'))
+  const theme                = useTheme()
+  const upSm                 = useMediaQuery(theme.breakpoints.up('sm'))
 
   const [anchorEl,  setAnchorEl]  = useState<null | HTMLElement>(null)
   const [todayMenu, setTodayMenu] = useState<(MenuHarian & { hari: Hari }) | null>(null)
@@ -87,8 +83,8 @@ export default function NutritionPage() {
   /* pilih menu sesuai hari */
   useEffect(() => {
     const hariList: Hari[] = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu']
-    const hari = hariList[new Date().getDay()] as Hari                 // pastikan tipe Hari
-    setTodayMenu({ hari, ...dailyMenus[hari] })                        // ✅ aman
+    const hari = hariList[new Date().getDay()] as keyof typeof dailyMenus
+    setTodayMenu({ hari, ...dailyMenus[hari] })
   }, [])
 
   /* auth check */
