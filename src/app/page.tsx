@@ -60,12 +60,13 @@ const Subtitle = styled(Typography, {
   color: darkMode ? '#e0e0e0' : '#f4f4f4',
 }));
 
-// ✅ StyledButton yang bisa menerima NextLink
+// ✅ StyledButton: auto width sesuai teks
 const StyledButton = styled((props: ButtonProps) => (
   <Button disableElevation {...props} />
 ))(({ theme }) => ({
-  margin: theme.spacing(1),
+  width: 'fit-content',
   padding: theme.spacing(1, 3),
+  margin: theme.spacing(1),
   fontWeight: 600,
   borderRadius: 30,
   textTransform: 'none',
@@ -141,7 +142,6 @@ export default function Home() {
             component={NextLink}
             href="/dashboard"
             variant="contained"
-            fullWidth={isMobile}
           >
             Masuk
           </StyledButton>
