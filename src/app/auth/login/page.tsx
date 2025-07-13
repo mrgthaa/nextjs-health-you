@@ -21,7 +21,7 @@ import { useDarkMode } from '@/context/DarkModeContext';
 
 const API_URL = 'https://685d194e769de2bf085f55ed.mockapi.io/Auth';
 
-// ✅ Styled Components dengan prop `isDarkMode`
+// ✅ Styled Components dengan prop isDarkMode
 const Background = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isDarkMode',
 })<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({

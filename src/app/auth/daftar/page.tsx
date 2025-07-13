@@ -18,12 +18,12 @@ import { useDarkMode } from '@/context/DarkModeContext';
 
 const API_URL = 'https://685d194e769de2bf085f55ed.mockapi.io/Auth';
 
-// ✅ GANTI jadi $darkmode
+// ✅ GANTI jadi darkmode (tanpa $)
 const Background = styled(Box, {
-  shouldForwardProp: (prop) => prop !== '$darkmode',
-})<{ $darkmode: boolean }>(({ theme, $darkmode }) => ({
+  shouldForwardProp: (prop) => prop !== 'darkmode',
+})<{ darkmode: boolean }>(({ theme, darkmode }) => ({
   minHeight: '100vh',
-  background: $darkmode
+  background: darkmode
     ? 'linear-gradient(to bottom right, #0f2027, #203a43, #2c5364)'
     : 'linear-gradient(135deg, #4682A9, #749BC2)',
   display: 'flex',
@@ -35,15 +35,15 @@ const Background = styled(Box, {
 }));
 
 const AuthCardBase = styled(Card, {
-  shouldForwardProp: (prop) => prop !== '$darkmode',
-})<{ $darkmode: boolean }>(({ theme, $darkmode }) => ({
+  shouldForwardProp: (prop) => prop !== 'darkmode',
+})<{ darkmode: boolean }>(({ theme, darkmode }) => ({
   width: '100%',
   maxWidth: '420px',
   padding: theme.spacing(4),
-  backgroundColor: $darkmode ? 'rgba(44, 62, 80, 0.9)' : '#ffffff',
-  color: $darkmode ? '#f0f0f0' : '#000',
+  backgroundColor: darkmode ? 'rgba(44, 62, 80, 0.9)' : '#ffffff',
+  color: darkmode ? '#f0f0f0' : '#000',
   borderRadius: '20px',
-  border: $darkmode ? '1px solid #2c3e50' : '1px solid #ddd',
+  border: darkmode ? '1px solid #2c3e50' : '1px solid #ddd',
   transition: 'all 0.3s ease',
 }));
 
@@ -99,7 +99,7 @@ export default function DaftarPage() {
   };
 
   return (
-    <Background $darkmode={darkMode}>
+    <Background darkmode={darkMode}>
       <Link href="/dashboard">
         <GlowIcon>
           <HomeIcon />
@@ -107,7 +107,7 @@ export default function DaftarPage() {
       </Link>
 
       <AuthCardBase
-        $darkmode={darkMode}
+        darkmode={darkMode}
         sx={{
           boxShadow: darkMode
             ? '0 0 20px rgba(255,255,255,0.1)'

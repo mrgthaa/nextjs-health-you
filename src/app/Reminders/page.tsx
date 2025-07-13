@@ -12,16 +12,11 @@ import {
   Menu,
   MenuItem,
   TextField,
-  Select,
-  FormControl,
-  InputLabel,
   Button,
   Paper,
-  Switch,
-  FormControlLabel,
   CircularProgress,
 } from '@mui/material';
-import { styled, keyframes } from '@mui/system';
+import { styled, keyframes, useTheme } from '@mui/system';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
@@ -33,45 +28,73 @@ import { useDarkMode } from '@/context/DarkModeContext';
 import DarkModeToggle from '@/components/DarkModeToggle';
 
 const MOCKAPI_URL = 'https://685d194e769de2bf085f55ed.mockapi.io/Reminders';
+const GOLD = '#FFD700';
 
-/* ───────── styled helpers ───────── */
+/* ---------- Animasi ---------- */
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 `;
 
-const Background = styled(Box, { shouldForwardProp: p => p !== '$dark' })<{
-  $dark: boolean;
-}>(({ theme, $dark }) => ({
+/* ---------- Styled ---------- */
+const Background = styled(Box, {
+  shouldForwardProp: (p) => p !== 'darkmode',
+})<{ darkmode: boolean }>(({ theme, darkmode }) => ({
   minHeight: '100vh',
-  background: $dark
+  background: darkmode
     ? 'linear-gradient(135deg,#0f2027,#203a43,#2c5364)'
     : 'linear-gradient(135deg,#293d5e,#5f84c7)',
   display: 'flex',
-  flexDirection: 'column',
+  justifyContent: 'center',
   alignItems: 'center',
-  padding: theme.spacing(6, 2, 8),
-  position: 'relative',
+  padding: theme.spacing(6, 2, 10),
+  flexDirection: 'column',
+  transition: 'background 0.4s',
 }));
 
-const Card = styled(Paper)(({ theme }) => ({
-  backgroundColor: 'rgba(255,255,255,.12)',
-  backdropFilter: 'blur(14px)',
+const Card = styled(Paper, {
+  shouldForwardProp: (p) => p !== 'darkmode',
+})<{ darkmode: boolean }>(({ theme, darkmode }) => ({
+  backdropFilter: 'blur(12px)',
+  backgroundColor: darkmode
+    ? 'rgba(16,33,39,0.95)'
+    : 'rgba(255,255,255,0.1)',
   borderRadius: 24,
   padding: theme.spacing(4),
   width: '100%',
   maxWidth: 800,
   color: '#fff',
-  boxShadow: '0 18px 38px rgba(0,0,0,.35)',
-  animation: `${fadeIn} .8s ease-out`,
+  animation: `${fadeIn} 0.7s ease-out`, // ✅ fixed
 }));
 
-/* ───────── form tanpa Grid ───────── */
+const inputStyle = (theme: any, dark: boolean) => ({
+  '& label': { color: '#fff' },
+  '& input': { color: '#fff' },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: '#fff' },
+    '&:hover fieldset': { borderColor: '#fff' },
+    '&.Mui-focused fieldset': { borderColor: GOLD },
+  },
+  '& .MuiSelect-select': { color: '#fff' },
+  '& .MuiSvgIcon-root': { color: '#fff' },
+});
+
+const StyledButton = styled(Button)({
+  borderRadius: 30,
+  backgroundColor: '#1976d2',
+  color: '#fff',
+  textTransform: 'none',
+  fontWeight: 600,
+  padding: '10px 24px',
+  '&:hover': { backgroundColor: '#155a9c' },
+});
+
+/* ---------- Form Komponen ---------- */
 function ReminderForm({
   onAdd,
   dark,
 }: {
-  onAdd: (d: any) => void;
+  onAdd: (data: any) => void;
   dark: boolean;
 }) {
   const [form, setForm] = useState({
@@ -81,283 +104,327 @@ function ReminderForm({
     contactType: 'email',
     contact: '',
   });
-
-  const update = (k: string) => (e: any) =>
-    setForm({ ...form, [k]: e.target.value });
+  const theme = useTheme();
+  const update =
+    (key: string) =>
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm({ ...form, [key]: e.target.value });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAdd(form);
-    setForm({ ...form, text: '', category: '', time: '', contact: '' });
+    setForm({
+      text: '',
+      category: '',
+      time: '',
+      contactType: 'email',
+      contact: '',
+    });
   };
 
   return (
     <Box
       component="form"
       onSubmit={handleSubmit}
-      sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
     >
-      <Typography variant="h6" fontWeight={700}>
-        Tambah Pengingat
+      <Typography variant="h6" fontWeight={700} color="#fff">
+        Tambah Pengingat
       </Typography>
 
-      {/* waktu + kategori */}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <TextField
-          fullWidth
           label="Jam Pengingat"
           type="time"
           value={form.time}
           onChange={update('time')}
-          InputLabelProps={{ shrink: true, sx: { color: '#fff' } }}
-          sx={{
-            flex: '1 1 180px',
-            '& .MuiOutlinedInput-root': { color: '#fff' },
-            '& fieldset': { borderColor: '#fff' },
-          }}
+          fullWidth
           required
+          InputLabelProps={{ shrink: true }}
+          sx={{ flex: 1, ...inputStyle(theme, dark) }}
         />
-
-        <FormControl sx={{ flex: '1 1 220px' }}>
-          <InputLabel shrink sx={{ color: '#fff' }}>
-            Jenis Pengingat
-          </InputLabel>
-          <Select
-            value={form.category}
-            onChange={update('category')}
-            sx={{ color: '#fff', '& .MuiSvgIcon-root': { color: '#fff' } }}
-            required
-          >
-            <MenuItem value="makan">Makan</MenuItem>
-            <MenuItem value="minum">Minum</MenuItem>
-            <MenuItem value="tidur">Tidur</MenuItem>
-          </Select>
-        </FormControl>
+        <TextField
+          select
+          label="Kategori"
+          value={form.category}
+          onChange={update('category')}
+          fullWidth
+          required
+          sx={{ flex: 1, ...inputStyle(theme, dark) }}
+        >
+          <MenuItem value="makan">Makan</MenuItem>
+          <MenuItem value="minum">Minum</MenuItem>
+          <MenuItem value="tidur">Tidur</MenuItem>
+        </TextField>
       </Box>
 
       <TextField
-        fullWidth
-        label="Deskripsi Pengingat"
+        label="Deskripsi"
         value={form.text}
         onChange={update('text')}
-        InputLabelProps={{ shrink: true, sx: { color: '#fff' } }}
-        sx={{ '& fieldset': { borderColor: '#fff' }, color: '#fff' }}
+        fullWidth
         required
+        sx={inputStyle(theme, dark)}
       />
 
-      {/* metode + kontak */}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        <FormControl sx={{ flex: '1 1 180px' }}>
-          <InputLabel shrink sx={{ color: '#fff' }}>
-            Metode
-          </InputLabel>
-          <Select
-            value={form.contactType}
-            onChange={update('contactType')}
-            sx={{ color: '#fff', '& .MuiSvgIcon-root': { color: '#fff' } }}
-            required
-          >
-            <MenuItem value="email">Email</MenuItem>
-            <MenuItem value="whatsapp">WhatsApp</MenuItem>
-          </Select>
-        </FormControl>
-
         <TextField
+          select
+          label="Metode"
+          value={form.contactType}
+          onChange={update('contactType')}
           fullWidth
-          label={form.contactType === 'email' ? 'Alamat Email' : 'Nomor WhatsApp'}
-          type={form.contactType === 'email' ? 'email' : 'tel'}
+          sx={{ flex: 1, ...inputStyle(theme, dark) }}
+        >
+          <MenuItem value="email">Email</MenuItem>
+          <MenuItem value="whatsapp">WhatsApp</MenuItem>
+        </TextField>
+        <TextField
+          label={form.contactType === 'email' ? 'Email' : 'WhatsApp'}
           value={form.contact}
           onChange={update('contact')}
-          InputLabelProps={{ shrink: true, sx: { color: '#fff' } }}
-          sx={{ flex: '1 1 220px', '& fieldset': { borderColor: '#fff' }, color: '#fff' }}
+          type={form.contactType === 'email' ? 'email' : 'tel'}
+          fullWidth
           required
+          sx={{ flex: 1, ...inputStyle(theme, dark) }}
         />
       </Box>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="contained" type="submit" sx={{ px: 4, borderRadius: 28 }}>
-          SIMPAN
-        </Button>
+      <Box sx={{ textAlign: 'right' }}>
+        <StyledButton type="submit">Simpan</StyledButton>
       </Box>
     </Box>
   );
 }
 
+/* ---------- Halaman Utama ---------- */
 export default function Reminders() {
   const router = useRouter();
   const { darkMode, toggleDarkMode } = useDarkMode();
+
   const [reminders, setReminders] = useState<any[]>([]);
   const [checking, setChecking] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
 
   /* auth check */
   useEffect(() => {
-    localStorage.getItem('isLoggedIn') === 'true'
-      ? setChecking(false)
-      : router.push('/auth/login');
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      router.push('/auth/login');
+    } else {
+      setChecking(false);
+    }
   }, [router]);
 
-  /* fetch data */
+  /* fetch reminders */
   useEffect(() => {
-    if (!checking) {
-      fetch(MOCKAPI_URL)
-        .then((r) => r.json())
-        .then(setReminders);
-    }
+    if (!checking) fetchReminders();
   }, [checking]);
 
-  /* CRUD handlers */
-  const addReminder = async (d: any) => {
+  const fetchReminders = async () => {
+    const res = await fetch(MOCKAPI_URL);
+    const data = await res.json();
+    setReminders(data);
+  };
+
+  const addReminder = async (r: any) => {
     const res = await fetch(MOCKAPI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(d),
+      body: JSON.stringify(r),
     });
-    const newReminder = await res.json(); // ✅ tunggu di sini
-    setReminders((r) => [newReminder, ...r]);
+    const newData = await res.json();
+    setReminders((prev) => [newData, ...prev]);
   };
 
-  const delReminder = async (idx: number) => {
-    const victim = reminders[idx];
-    if (victim.id) await fetch(`${MOCKAPI_URL}/${victim.id}`, { method: 'DELETE' });
-    setReminders((r) => r.filter((_, i) => i !== idx));
+  const deleteReminder = async (id: string) => {
+    await fetch(`${MOCKAPI_URL}/${id}`, { method: 'DELETE' }); // ✅ fixed
+    setReminders((prev) => prev.filter((r) => r.id !== id));
   };
-
-  /* top‑bar menu */
-  const openMenu = Boolean(anchorEl);
 
   if (checking)
     return (
-      <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center">
+      <Box
+        minHeight="100vh"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
         <CircularProgress />
       </Box>
     );
 
   return (
-    <Background $dark={darkMode}>
-      {/* top‑bar  */}
-      <Box sx={{ position: 'fixed', top: 24, right: 24, display: 'flex', gap: 1 }}>
+    <Background darkmode={darkMode}>
+      {/* ---------- Navbar Mini ---------- */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 24,
+          right: 24,
+          display: 'flex',
+          gap: 1,
+          zIndex: 1000,
+        }}
+      >
         <Tooltip title="Dashboard">
-          <Link href="/dashboard" passHref>
+          <Link href="/dashboard">
             <IconButton
-              sx={{ color: '#ffd700', background: 'rgba(255,255,255,.18)', border: '1px solid #ffd700' }}
+              sx={{
+                color: GOLD,
+                bgcolor: 'rgba(255,255,255,0.1)',
+                border: `1px solid ${GOLD}`, // ✅ fixed
+              }}
             >
               <HomeIcon fontSize="small" />
             </IconButton>
           </Link>
         </Tooltip>
+
         <Tooltip title="Menu">
           <IconButton
             onClick={(e) => setAnchorEl(e.currentTarget)}
-            sx={{ color: '#ffd700', background: 'rgba(255,255,255,.18)', border: '1px solid #ffd700' }}
+            sx={{
+              color: GOLD,
+              bgcolor: 'rgba(255,255,255,0.1)',
+              border: `1px solid ${GOLD}`, // ✅ fixed
+            }}
           >
             <MenuIcon fontSize="small" />
           </IconButton>
         </Tooltip>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={menuOpen}
+          onClose={() => setAnchorEl(null)}
+          PaperProps={{
+            sx: {
+              background: darkMode ? '#102127' : '#6f95d3',
+              color: GOLD,
+              borderRadius: 2,
+              backdropFilter: 'blur(12px)',
+            },
+          }}
+        >
+          {[
+            { l: 'Data Diri', h: '/profile' },
+            { l: 'Menu Sehat', h: '/Nutrition' },
+            { l: 'Media Sosial', h: '/social' },
+          ].map((i) => (
+            <MenuItem
+              key={i.h}
+              onClick={() => setAnchorEl(null)}
+              sx={{ color: GOLD }}
+            >
+              <Link
+                href={i.h}
+                style={{ textDecoration: 'none', color: GOLD, width: '100%' }}
+              >
+                {i.l}
+              </Link>
+            </MenuItem>
+          ))}
+
+          <MenuItem
+            onClick={() => {
+              toggleDarkMode();
+              setAnchorEl(null);
+            }}
+          >
+            <DarkModeToggle
+              darkMode={darkMode}
+              toggleDarkMode={toggleDarkMode}
+            />
+          </MenuItem>
+        </Menu>
       </Box>
 
-      {/* pop‑menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={openMenu}
-        onClose={() => setAnchorEl(null)}
-        PaperProps={{
-          sx: {
-            background: darkMode ? '#102127' : '#6f95d3',
-            backdropFilter: 'blur(14px)',
-            border: '1px solid rgba(255,255,255,.25)',
-          },
-        }}
-      >
-        {[
-          { l: 'Data Diri', h: '/profile' },
-          { l: 'Menu Sehat', h: '/Nutrition' },
-          { l: 'Media Sosial', h: '/social' },
-        ].map((i) => (
-          <MenuItem key={i.h} onClick={() => setAnchorEl(null)}>
-            <Link href={i.h} style={{ textDecoration: 'none', color: '#ffd700', width: '100%' }}>
-              {i.l}
-            </Link>
-          </MenuItem>
-        ))}
-        <MenuItem
-          onClick={() => {
-            toggleDarkMode();
-            setAnchorEl(null);
-          }}
-          sx={{ color: '#ffd700' }}
+      {/* ---------- Card Utama ---------- */}
+      <Card darkmode={darkMode}>
+        <Typography
+          variant="h4"
+          fontWeight={800}
+          textAlign="center"
+          gutterBottom
         >
-          <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-        </MenuItem>
-      </Menu>
+          Pengingat Hidup Sehat 💧🍽🥬
 
-      {/* main card */}
-      <Card>
-        <Typography variant="h4" fontWeight={700} align="center" sx={{ mb: 1 }}>
-          Pengingat Hidup Sehat 💧🍽️🥬
         </Typography>
-        <Divider sx={{ my: 2, borderColor: '#555' }} />
+        <Divider sx={{ mb: 3, borderColor: '#555' }} />
 
         <ReminderForm onAdd={addReminder} dark={darkMode} />
 
-        <Box mt={4}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Daftar Pengingat
+        <Box mt={5}>
+          <Typography variant="h6" fontWeight={700} gutterBottom>
+            Daftar Pengingat
           </Typography>
 
           {reminders.length === 0 ? (
-            <Typography sx={{ textAlign: 'center', py: 4, color: '#ccc' }}>
+            <Typography color="#ccc" textAlign="center" component="span">
               Belum ada pengingat.
             </Typography>
           ) : (
-            <Box sx={{ borderRadius: 3, border: '1px solid #555', overflow: 'hidden' }}>
-              <List disablePadding>
-                {reminders.map((r, i) => (
-                  <Box key={r.id || i}>
-                    <ListItem
-                      secondaryAction={
-                        <Tooltip title="Hapus">
-                          <IconButton onClick={() => delReminder(i)}>
-                            <DeleteIcon color="error" />
-                          </IconButton>
-                        </Tooltip>
+            <List>
+              {reminders.map((r, i) => (
+                <Box key={r.id}>
+                  <ListItem
+                    secondaryAction={
+                      <Tooltip title="Hapus">
+                        <IconButton onClick={() => deleteReminder(r.id)}>
+                          <DeleteIcon color="error" />
+                        </IconButton>
+                      </Tooltip>
+                    }
+                    sx={{
+                      bgcolor: darkMode
+                        ? 'rgba(255,255,255,0.05)'
+                        : 'rgba(0,0,0,0.03)',
+                      '&:hover': {
+                        bgcolor: darkMode
+                          ? 'rgba(255,255,255,0.08)'
+                          : 'rgba(0,0,0,0.06)',
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Typography
+                          fontWeight={700}
+                          color="#fff"
+                          component="span"
+                        >
+                          {r.text} ({r.category})
+                        </Typography>
                       }
-                      sx={{
-                        background: 'rgba(255,255,255,.05)',
-                        '&:hover': { background: 'rgba(255,255,255,.1)' },
-                      }}
-                    >
-                      <ListItemText
-                        primary={
-                          <Typography fontWeight={700}>
-                            {r.text} ({r.category})
+                      secondary={
+                        <>
+                          <Typography
+                            variant="body2"
+                            color="#ccc"
+                            component="span"
+                            sx={{ display: 'flex', alignItems: 'center' }}
+                          >
+                            <AccessTimeIcon sx={{ fontSize: 16, mr: 0.5 }} />{' '}
+                            {r.time}
                           </Typography>
-                        }
-                        secondary={
-                          <>
-                            <Typography
-                              variant="body2"
-                              display="flex"
-                              alignItems="center"
-                              sx={{ mb: 0.25 }}
-                            >
-                              <AccessTimeIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                              {r.time}
-                            </Typography>
-                            <Typography variant="body2">
-                              Kirim ke {r.contactType}: {r.contact}
-                            </Typography>
-                          </>
-                        }
-                      />
-                    </ListItem>
-                    {i < reminders.length - 1 && (
-                      <Divider sx={{ borderColor: '#555' }} />
-                    )}
-                  </Box>
-                ))}
-              </List>
-            </Box>
+                          <Typography
+                            variant="body2"
+                            color="#ccc"
+                            component="span"
+                          >
+                            Kirim via {r.contactType}: {r.contact}
+                          </Typography>
+                        </>
+                      }
+                    />
+                  </ListItem>
+                  {i < reminders.length - 1 && (
+                    <Divider sx={{ borderColor: '#444' }} />
+                  )}
+                </Box>
+              ))}
+            </List>
           )}
         </Box>
       </Card>
